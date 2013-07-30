@@ -23,9 +23,9 @@ bool AppDelegate::applicationDidFinishLaunching() {
     CCEGLView* pEGLView = CCEGLView::sharedOpenGLView();
 
     pDirector->setOpenGLView(pEGLView);
-
+	CCSize sz = pDirector->getVisibleSize();
     // Set the design resolution
-    pEGLView->setDesignResolutionSize(designResolutionSize.width, designResolutionSize.height, kResolutionNoBorder);
+    pEGLView->setDesignResolutionSize(sz.width, sz.height, kResolutionNoBorder);
 
 	CCSize frameSize = pEGLView->getFrameSize();
     
@@ -41,21 +41,21 @@ bool AppDelegate::applicationDidFinishLaunching() {
 	{
         searchPath.push_back(largeResource.directory);
 
-        pDirector->setContentScaleFactor(MIN(largeResource.size.height/designResolutionSize.height, largeResource.size.width/designResolutionSize.width));
+        //pDirector->setContentScaleFactor(MIN(largeResource.size.height/designResolutionSize.height, largeResource.size.width/designResolutionSize.width));
 	}
     // if the frame's height is larger than the height of small resource size, select medium resource.
     else if (frameSize.height > smallResource.size.height)
     {
         searchPath.push_back(mediumResource.directory);
         
-        pDirector->setContentScaleFactor(MIN(mediumResource.size.height/designResolutionSize.height, mediumResource.size.width/designResolutionSize.width));
+        //pDirector->setContentScaleFactor(MIN(mediumResource.size.height/designResolutionSize.height, mediumResource.size.width/designResolutionSize.width));
     }
     // if the frame's height is smaller than the height of medium resource size, select small resource.
 	else
     {
         searchPath.push_back(smallResource.directory);
 
-        pDirector->setContentScaleFactor(MIN(smallResource.size.height/designResolutionSize.height, smallResource.size.width/designResolutionSize.width));
+        //pDirector->setContentScaleFactor(MIN(smallResource.size.height/designResolutionSize.height, smallResource.size.width/designResolutionSize.width));
     }
     
     // set searching path

@@ -1,4 +1,4 @@
-#include "HelloWorldScene.h"
+﻿#include "HelloWorldScene.h"
 #include "AppMacros.h"
 #include <stdlib.h>
 USING_NS_CC;
@@ -19,6 +19,51 @@ CCScene* HelloWorld::scene()
     return scene;
 }
 
+void HelloWorld::createGirl(int id) {
+}
+
+void HelloWorld::preOne(CCObject *send) {
+    if(currentGirl > 0) {
+        currentGirl--;
+
+        char temp[100];
+        sprintf(temp, "girls/after%d.png", currentGirl);
+        CCTexture2D *tex = CCTextureCache::sharedTextureCache()->addImage(temp);
+        sp1->setTexture(tex);
+
+        sprintf(temp, "girls/pre%d.png", currentGirl);
+        t2 = CCTextureCache::sharedTextureCache()->addImage(temp);
+        sp2->setTexture(t2);
+
+        glPixelStorei(GL_PACK_ALIGNMENT, 4);
+        CCRenderTexture *render = CCRenderTexture::create(t2->getPixelsWide(), t2->getPixelsHigh(), kCCTexture2DPixelFormat_RGBA8888);
+        render->begin();
+        sp2->draw();
+        glReadPixels(0, 0, t2->getPixelsWide(), t2->getPixelsHigh(), GL_RGBA, GL_UNSIGNED_BYTE, data);
+        render->end();
+    }
+}
+void HelloWorld::nextOne(CCObject *send) {
+    if(currentGirl < maxGirl) {
+        currentGirl++;
+        char temp[100];
+        sprintf(temp, "girls/after%d.png", currentGirl);
+        CCTexture2D *tex = CCTextureCache::sharedTextureCache()->addImage(temp);
+        sp1->setTexture(tex);
+
+        sprintf(temp, "girls/pre%d.png", currentGirl);
+        t2 = CCTextureCache::sharedTextureCache()->addImage(temp);
+        sp2->setTexture(t2);
+
+        glPixelStorei(GL_PACK_ALIGNMENT, 4);
+        CCRenderTexture *render = CCRenderTexture::create(t2->getPixelsWide(), t2->getPixelsHigh(), kCCTexture2DPixelFormat_RGBA8888);
+        render->begin();
+        sp2->draw();
+        glReadPixels(0, 0, t2->getPixelsWide(), t2->getPixelsHigh(), GL_RGBA, GL_UNSIGNED_BYTE, data);
+        render->end();
+
+    }
+}
 // on "init" you need to initialize your instance
 bool HelloWorld::init()
 {
@@ -28,91 +73,120 @@ bool HelloWorld::init()
     {
         return false;
     }
+    currentGirl = 0;
+    maxGirl = 20;
     
     CCSize visibleSize = CCDirector::sharedDirector()->getVisibleSize();
     CCPoint origin = CCDirector::sharedDirector()->getVisibleOrigin();
     	
-    CCTexture2D *tex = CCTextureCache::sharedTextureCache()->addImage("pic1.jpg");
-    CCSprite *sp1 = CCSprite::createWithTexture(tex);
-    sp1->setPosition(ccp(300, 200));
-    addChild(sp1);
+    CCSprite *back = CCSprite::create("settingbg.png");
+    back->setPosition(ccp(visibleSize.width/2, visibleSize.height/2));
+    addChild(back);
+    CCSize sz = back->getContentSize();
+    back->setScaleX(visibleSize.width/sz.width);
+    back->setScaleY(visibleSize.height/sz.height);
 
-    t2 = CCTextureCache::sharedTextureCache()->addImage("pic2.png");
+    //480*360
+    girl = CCNode::create();
+    girl->setPosition(ccp(visibleSize.width/2, 360));
+    
+
+    ccBlendFunc bf = {GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA};
+    CCTexture2D *tex = CCTextureCache::sharedTextureCache()->addImage("girls/after0.png");
+    sp1 = CCSprite::createWithTexture(tex);
+    girl->addChild(sp1);
+    sp1->setBlendFunc(bf);
+
+
+
+    t2 = CCTextureCache::sharedTextureCache()->addImage("girls/pre0.png");
     sp2 = CCSprite::createWithTexture(t2);
-    sp2->setPosition(ccp(300, 200));
-    addChild(sp2);
+    girl->addChild(sp2);
+
+    sp2->setBlendFunc(bf);
+    CCTexture2DPixelFormat mat = t2->getPixelFormat();
+    CCLog("tex format %d  %d", mat, kCCTexture2DPixelFormat_RGBA8888);
+
+
+    CCLog("t2 contentSize %f %f %d %d", t2->getContentSize().width, t2->getContentSize().height, t2->getPixelsWide(), t2->getPixelsHigh());
 
     //参照CCTexture2D initWithData 写入数据时候的格式
     //读取数据的时候的格式
-    glPixelStorei(GL_PACK_ALIGNMENT, 4);
+    //glPixelStorei(GL_PACK_ALIGNMENT, 4);
 
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, t2->getName());
+    //read girl data
+    //glActiveTexture(GL_TEXTURE0);
+    //glBindTexture(GL_TEXTURE_2D, t2->getName());
 
     glPixelStorei(GL_PACK_ALIGNMENT, 4);
-    glPixelStorei(GL_PACK_ROW_LENGTH, t2->getPixelsWide());
+    //glPixelStorei(GL_PACK_ROW_LENGTH, t2->getPixelsWide());
     data = (unsigned char *)malloc(4*t2->getPixelsWide()*t2->getPixelsHigh());
+    CCLog("assign data");
     GLint inf;
-    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_COMPONENTS, &inf);
-    glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-    CCLog("internal format %d %d", inf, GL_RGBA);
-    int dw = t2->getPixelsWide();
-    int dh = t2->getPixelsHigh();
-
-    CCTexture2D *temp = new CCTexture2D();
-    temp->initWithData(data, kCCTexture2DPixelFormat_RGBA8888, dw, dh, CCSizeMake(dw, dh));
-    CCSprite *sp3 = CCSprite::createWithTexture(temp);
-    sp3->setPosition(ccp(50, 50));
-    addChild(sp3);
-
-
-    /*
-    for(int i = 0; i < dw; i++) {
-        for(int j =0; j < 1; j++) {
-            //CCLog("data %d", data[j*dw*4+i*4]);
-            data[j*dw*4+i*4+3] = 255;
-            data[j*dw*4+i*4+3] = 255;
-            data[j*dw*4+i*4+3] = 255;
-            data[j*dw*4+i*4+3] = 255;
+    //glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_COMPONENTS, &inf);
+    CCRenderTexture *render = CCRenderTexture::create(t2->getPixelsWide(), t2->getPixelsHigh(), kCCTexture2DPixelFormat_RGBA8888);
+    render->begin();
+    sp2->draw();
+    glReadPixels(0, 0, t2->getPixelsWide(), t2->getPixelsHigh(), GL_RGBA, GL_UNSIGNED_BYTE, data);
+    render->end();
+    for(int i = 0; i < t2->getPixelsWide(); i++) {
+        for(int j = 0; j < t2->getPixelsHigh(); j++) {
+            data[j*t2->getPixelsWide()*4+i*4+3] = 255;
         }
     }
-    */
+
+    //glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 
 
-
+    //read circle data
     circle = CCTextureCache::sharedTextureCache()->addImage("circle.png");
     cirData = (unsigned char*)malloc(4*circle->getPixelsWide()*circle->getPixelsHigh());
+    CCLog("assign circle");
+    transferData = (unsigned char*)malloc(4*circle->getPixelsWide()*circle->getPixelsHigh());
+    CCLog("assign transfer data");
+    CCSprite *tempCir = CCSprite::createWithTexture(circle);
 
-    glPixelStorei(GL_PACK_ROW_LENGTH, circle->getPixelsWide());
+    //glPixelStorei(GL_PACK_ROW_LENGTH, circle->getPixelsWide());
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, circle->getName());
-    glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, cirData);
+
+    render->beginWithClear(0, 0, 0, 0);
+    tempCir->draw();
+    glReadPixels(0, 0, circle->getPixelsWide(), circle->getPixelsHigh(), GL_RGBA, GL_UNSIGNED_BYTE, cirData);
+    render->end();
+
+    //glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, cirData);
     
     setTouchMode(kCCTouchesOneByOne);
     setTouchEnabled(true);
     CCLog("init Hello World Scene");
 
+	addChild(girl);
 
-    int cw = circle->getPixelsWide();
-    int ch = circle->getPixelsHigh();
+    CCMenuItemImage *pre = CCMenuItemImage::create("button.png", "buttonOn.png", this, menu_selector(HelloWorld::preOne));
+    CCMenuItemImage *next = CCMenuItemImage::create("button.png", "buttonOn.png", this, menu_selector(HelloWorld::nextOne));
+    pre->setPosition(ccp(93, 80));
+
+
+
+    next->setPosition(ccp(visibleSize.width-93, 80));
+
     /*
-    for(int i = 0; i < cw; i++) {
-        for(int j = 0; j < ch; j++) {
-            cirData[j*cw*4+i*4] = 255;
-            cirData[j*cw*4+i*4+1] = 255;
-            cirData[j*cw*4+i*4+2] = 255;
-            cirData[j*cw*4+i*4+3] = 255;
-        }
-    }
+    CCLabelTTF *label = CCLabelTTF::create("前一个","Arial", 20);
+    pre->addChild(label);
+    label->setPosition(ccp(70, 30));
+
+    CCLabelTTF *label2 = CCLabelTTF::create("后一个", "Arial", 20);
+    next->addChild(label2);
+    label2->setPosition(ccp(70, 30));
     */
 
 
-    CCTexture2D *temp2 = new CCTexture2D();
-    temp2->initWithData(cirData, kCCTexture2DPixelFormat_RGBA8888, cw, ch, CCSizeMake(cw, ch));
-    CCSprite *sp4 = CCSprite::createWithTexture(temp2);
-    sp4->setPosition(ccp(80, 50));
-    addChild(sp4);
-
+    CCMenu *menu = CCMenu::create();
+    menu->addChild(pre);
+    menu->addChild(next);
+    menu->setPosition(ccp(0, 0));
+    addChild(menu);
     return true;
 }
 
@@ -126,8 +200,7 @@ void HelloWorld::menuCloseCallback(CCObject* pSender)
 #endif
 }
 
-
-bool HelloWorld::ccTouchBegan(CCTouch *pTouch, CCEvent *pEvent) {
+void HelloWorld::drawPoint(CCTouch *pTouch) {
 
     CCPoint p = pTouch->getLocation();
     p = sp2->convertToNodeSpace(p);
@@ -135,62 +208,56 @@ bool HelloWorld::ccTouchBegan(CCTouch *pTouch, CCEvent *pEvent) {
     CCLog("touchPoint %f %f", p.x, p.y);
 
     int wide = circle->getPixelsWide();
-    wide -= wide%2;
+    //wide -= wide%2;
     int high = circle->getPixelsHigh();
-    high -= high%2;
+    //high -= high%2;
     CCLog("circle size %d %d", wide, high);
 
     int dw = t2->getPixelsWide();
     int dh = t2->getPixelsHigh();
     CCLog("data width height %d %d", dw, dh);
 
+    p.x = (std::max)(wide/2, (int)p.x);
+	p.x = (std::min)((int)p.x, dw-wide/2);
+    p.y = (std::max)(high/2, (int)p.y);
+	p.y = (std::min)((int)p.y, dh-high/2);
 
-    int left = int(p.x)-wide/2;
-    int right = int(p.x)+wide/2;
-    int bottom = int(p.y)-high/2;
-    int top = int(p.y)+high/2;
+    int left = p.x-wide/2;
+    int right = p.x+wide/2;
+    int bottom = p.y-high/2;
+    int top = p.y+high/2;
 
     CCLog("touchBegan %d %d %d %d", left, right, bottom, top);
     
     //绘制防止超出边界
-    left = (std::max)(0, left);
-    right = (std::min)(dw, right);
-    bottom = (std::max)(0, bottom);
-    top = (std::min)(dh, top);
-    CCLog("adjust touchBegan %d %d %d %d", left, right, bottom, top);
-
-
-
-    /*
-    for(int i = 0; i < right; i++) {
-        for(int j = 0; j < top; j++) {
-            int drow = bottom+j;
-            int dcol = left+i;
-            int dIndex = drow*dw*4+dcol*4+3;
-            int cirIndex = j*wide*4+i*4;
-            //alpha value  -=  red color
-            int temp = data[dIndex]-cirData[cirIndex];
-            temp = (std::max)(temp, 0);
-            data[dIndex] = temp;
-        }
-    }
-    */
+    //半个边缘
     
     for(int i = left ; i < right; i++) {
         for(int j = bottom; j < top; j++) {
-            int drow = bottom+j;
-            drow = dh-drow;
-            int dcol = left+i;
+            int drow = j;
+            //drow = dh-drow;
+            int dcol = i;
             int dIndex = drow*dw*4+dcol*4+0;
             int cirIndex = (j-bottom)*circle->getPixelsWide()*4+(i-left)*4;
-            int temp = int(data[dIndex+3])-int(cirData[cirIndex]);
+            int temp = (int)(data[dIndex+3])-(int)(cirData[cirIndex]);
             data[dIndex+3] = (std::max)(temp, 0); 
+
             /*
-            data[dIndex] = 255;
-            data[dIndex+1] = 0;
-            data[dIndex+2] = 0;
-            data[dIndex+3] = 255;
+            temp = (int)(data[dIndex+0])-(int)(cirData[cirIndex]);
+            data[dIndex+0] = (std::max)(temp, 0); 
+
+            temp = (int)(data[dIndex+1])-(int)(cirData[cirIndex]);
+            data[dIndex+1] = (std::max)(temp, 0); 
+
+            temp = (int)(data[dIndex+2])-(int)(cirData[cirIndex]);
+            data[dIndex+2] = (std::max)(temp, 0); 
             */
+
+            int transIndex = ((high-1)-(j-bottom))*circle->getPixelsWide()*4+(i-left)*4;
+            transferData[transIndex+0] = data[dIndex+0];
+            transferData[transIndex+1] = data[dIndex+1];
+            transferData[transIndex+2] = data[dIndex+2];
+            transferData[transIndex+3] = data[dIndex+3];
         }
     }
     
@@ -219,12 +286,19 @@ bool HelloWorld::ccTouchBegan(CCTouch *pTouch, CCEvent *pEvent) {
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     }
 
-    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, dw, dh, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    //glPixelStorei(GL_PACK_ROW_LENGTH, wide);
+    //glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, dw, dh, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, left, dh-top, wide, high, GL_RGBA, GL_UNSIGNED_BYTE, transferData);
 
     //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)dw, (GLsizei)dh, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+}
+
+bool HelloWorld::ccTouchBegan(CCTouch *pTouch, CCEvent *pEvent) {
+    drawPoint(pTouch);
 	return true;
 }
 void HelloWorld::ccTouchMoved(CCTouch *pTouch, CCEvent *pEvent) {
+    drawPoint(pTouch);
 }
 void HelloWorld::ccTouchEnded(CCTouch *pTouch, CCEvent *pEvent) {
 }

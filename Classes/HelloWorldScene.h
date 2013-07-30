@@ -25,10 +25,22 @@ public:
     virtual void ccTouchMoved(CCTouch *pTouch, CCEvent *pEvent);
     virtual void ccTouchEnded(CCTouch *pTouch, CCEvent *pEvent);
 
+    CCNode *girl;
+    CCSprite *sp1;
     CCTexture2D *t2;
     CCTexture2D *circle;
     unsigned char *cirData;
 	CCSprite *sp2;
+
+    unsigned char *transferData;
+    void drawPoint(CCTouch*);
+    int currentGirl;
+    int maxGirl;
+
+    void createGirl(int);
+    void preOne(CCObject *);
+    void nextOne(CCObject *);
+
 };
 
 #endif // __HELLOWORLD_SCENE_H__
