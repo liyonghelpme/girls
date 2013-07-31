@@ -27,13 +27,17 @@ void HelloWorld::preOne(CCObject *send) {
         currentGirl--;
 
         char temp[100];
+        ccBlendFunc bf = {GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA};
         sprintf(temp, "girls/after%d.png", currentGirl);
         CCTexture2D *tex = CCTextureCache::sharedTextureCache()->addImage(temp);
         sp1->setTexture(tex);
+        sp1->setBlendFunc(bf);
 
         sprintf(temp, "girls/pre%d.png", currentGirl);
         t2 = CCTextureCache::sharedTextureCache()->addImage(temp);
         sp2->setTexture(t2);
+        sp2->setBlendFunc(bf);
+
 
         glPixelStorei(GL_PACK_ALIGNMENT, 4);
         CCRenderTexture *render = CCRenderTexture::create(t2->getPixelsWide(), t2->getPixelsHigh(), kCCTexture2DPixelFormat_RGBA8888);
@@ -47,13 +51,17 @@ void HelloWorld::nextOne(CCObject *send) {
     if(currentGirl < maxGirl) {
         currentGirl++;
         char temp[100];
+
+        ccBlendFunc bf = {GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA};
         sprintf(temp, "girls/after%d.png", currentGirl);
         CCTexture2D *tex = CCTextureCache::sharedTextureCache()->addImage(temp);
         sp1->setTexture(tex);
+        sp1->setBlendFunc(bf);
 
         sprintf(temp, "girls/pre%d.png", currentGirl);
         t2 = CCTextureCache::sharedTextureCache()->addImage(temp);
         sp2->setTexture(t2);
+        sp2->setBlendFunc(bf);
 
         glPixelStorei(GL_PACK_ALIGNMENT, 4);
         CCRenderTexture *render = CCRenderTexture::create(t2->getPixelsWide(), t2->getPixelsHigh(), kCCTexture2DPixelFormat_RGBA8888);
@@ -74,7 +82,7 @@ bool HelloWorld::init()
         return false;
     }
     currentGirl = 0;
-    maxGirl = 20;
+    maxGirl = 51;
     
     CCSize visibleSize = CCDirector::sharedDirector()->getVisibleSize();
     CCPoint origin = CCDirector::sharedDirector()->getVisibleOrigin();
@@ -88,7 +96,8 @@ bool HelloWorld::init()
 
     //480*360
     girl = CCNode::create();
-    girl->setPosition(ccp(visibleSize.width/2, 360));
+    
+    girl->setPosition(ccp(visibleSize.width/2, (visibleSize.height-50)/2));
     
 
     ccBlendFunc bf = {GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA};
@@ -171,7 +180,6 @@ bool HelloWorld::init()
 
     next->setPosition(ccp(visibleSize.width-93, 80));
 
-    /*
     CCLabelTTF *label = CCLabelTTF::create("前一个","Arial", 20);
     pre->addChild(label);
     label->setPosition(ccp(70, 30));
@@ -179,7 +187,6 @@ bool HelloWorld::init()
     CCLabelTTF *label2 = CCLabelTTF::create("后一个", "Arial", 20);
     next->addChild(label2);
     label2->setPosition(ccp(70, 30));
-    */
 
 
     CCMenu *menu = CCMenu::create();
